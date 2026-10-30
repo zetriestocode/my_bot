@@ -32,10 +32,6 @@ def generate_launch_description():
     gazebo_rosPackageLaunch = PythonLaunchDescriptionSource(
         os.path.join(get_package_share_directory('ros_gz_sim'), 'launch', 'gz_sim.launch.py'))
 
-    # gazeboLaunch = IncludeLaunchDescription(gazebo_rosPackageLaunch, 
-    #                                         launch_arguments={'gz_args': ['-r -v -v4 empty.sdf'], 
-    #                                                           'on_exit_shutdown': 'true'}.items()) # can replace pathWorldFile with empty.sdf to load an empty world
-
     world = LaunchConfiguration('world')
 
     world_arg = DeclareLaunchArgument(
@@ -45,11 +41,9 @@ def generate_launch_description():
         )
 
     # Include the Gazebo launch file, provided by the ros_gz_sim package
-    gazeboLaunch = IncludeLaunchDescription(
-                PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory('ros_gz_sim'), 'launch', 'gz_sim.launch.py')]),
-                    launch_arguments={'gz_args': ['-r -v4 ', world], 'on_exit_shutdown': 'true'}.items()
-             )
+    gazeboLaunch = IncludeLaunchDescription(gazebo_rosPackageLaunch, 
+                                            launch_arguments={'gz_args': ['-r -v4 ', world], 'on_exit_shutdown': 'true'}.items()
+    )
     
     spawnModelNodeGazebo = Node(
         package='ros_gz_sim',
@@ -84,6 +78,41 @@ def generate_launch_description():
         output='screen',
     )   
 
+    ros_gz_image_bridge = Node(
+        package="ros_gz_image",
+        executable="image_bridge",
+        arguments=["/camera/image_raw"]
+    )
+
+    diff_drive_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "diff_cont",
+            '--controller-ros-args',
+            '-r /diff_cont/cmd_vel:=/cmd_vel'
+        ],
+    )
+
+    joint_broad_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["joint_broad"],
+    )
+
+    # Remapping cmd_vel. Teleop node will publish to /cmd_vel_remap, which will be  
+    # stamped and published to /cmd_vel for the diff_drive_controller to use.
+    twist_stamper = Node(
+    package='twist_stamper',
+    executable='twist_stamper',
+    parameters=[{'frame_id': 'base_link'}],
+    remappings=[
+        ('cmd_vel_in', '/cmd_vel_remap'),
+        ('cmd_vel_out', '/cmd_vel'),
+    ],
+    output='screen'
+)
+
     # Empty launch description object
     LaunchDescriptionObject = LaunchDescription()
 
@@ -96,6 +125,10 @@ def generate_launch_description():
     LaunchDescriptionObject.add_action(spawnModelNodeGazebo)
     LaunchDescriptionObject.add_action(nodeRobotStatePublisher)
     LaunchDescriptionObject.add_action(start_gazebo_ros_bridge_cmd)
-
+    LaunchDescriptionObject.add_action(ros_gz_image_bridge)
+    LaunchDescriptionObject.add_action(diff_drive_spawner)
+    LaunchDescriptionObject.add_action(joint_broad_spawner)
+    LaunchDescriptionObject.add_action(twist_stamper)
+    
     return LaunchDescriptionObject
 

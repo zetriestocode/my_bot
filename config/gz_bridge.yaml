@@ -5,12 +5,13 @@
   gz_type_name: "gz.msgs.Clock"
   direction: GZ_TO_ROS
 
-# Command velocity subscribed to by DiffDrive plugin
-- ros_topic_name: "/cmd_vel"
-  gz_topic_name: "/cmd_vel"
-  ros_type_name: "geometry_msgs/msg/Twist" # Twist
-  gz_type_name: "gz.msgs.Twist"
-  direction: ROS_TO_GZ
+# # Comment out for ros2_control
+# # Command velocity subscribed to by DiffDrive plugin
+# - ros_topic_name: "/cmd_vel"
+#   gz_topic_name: "/cmd_vel"
+#   ros_type_name: "geometry_msgs/msg/Twist" # Twist
+#   gz_type_name: "gz.msgs.Twist"
+#   direction: ROS_TO_GZ
 
 # Odometry published by DiffDrive plugin
 - ros_topic_name: "/odom"
@@ -31,4 +32,24 @@
   gz_topic_name: "/joint_states"
   ros_type_name: "sensor_msgs/msg/JointState"
   gz_type_name: "gz.msgs.Model"
+  direction: GZ_TO_ROS
+
+# Laser Scan Topics
+- ros_topic_name: "/scan"
+  gz_topic_name: "/scan"
+  ros_type_name: "sensor_msgs/msg/LaserScan"
+  gz_type_name: "gz.msgs.LaserScan"
+  direction: GZ_TO_ROS
+
+# - ros_topic_name: "/scan/points"
+#   gz_topic_name: "/scan/points"
+#   ros_type_name: "sensor_msgs/msg/PointCloud2"
+#   gz_type_name: "gz.msgs.PointCloudPacked"
+#   direction: GZ_TO_ROS
+
+# Camera topics (main camera data handled by dedicated image bridge)
+- ros_topic_name: "camera/camera_info"
+  gz_topic_name: "camera/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
