@@ -30,7 +30,7 @@ def generate_launch_description():
     rsp = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(
             get_package_share_directory(package_name), 'launch', 'rsp.launch.py')),
-        launch_arguments={'use_sim_time': 'true'}.items()
+        launch_arguments={'use_sim_time': 'true', 'use_ros2_control': 'true'}.items()
     )
 
     # Gazebo Sim with the chosen world
@@ -104,6 +104,17 @@ def generate_launch_description():
         output='screen'
     )
 
+    twist_mux_config = os.path.join(get_package_share_directory(package_name),
+                                         'config', 'twist_mux.yaml')
+    twist_mux = Node(
+        package='twist_mux',
+        executable='twist_mux',
+        output='screen',
+        remappings={('/cmd_vel_out', '/cmd_vel')},
+        parameters=[
+            {'use_sim_time': True},
+            twist_mux_config])
+
     return LaunchDescription([
         world_arg,
         rsp,
@@ -114,5 +125,6 @@ def generate_launch_description():
         joint_broad_spawner,
         diff_drive_spawner,
         twist_stamper,
+        twist_mux
     ])
 
